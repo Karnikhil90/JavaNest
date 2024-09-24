@@ -1,0 +1,178 @@
+
+/**
+ * @since v0.1a [alpha version]
+ * @author Nikhil Karmakar <email=nikhilbroo@hotmail.com>
+ * 
+ * JavaNest CodeEditor - v0.1a
+ * 
+ * JavaNest: The name represents a space where Java is at the core of development.
+ * "Java" signifies the language used for building this project, while "Nest" symbolizes 
+ * a safe, comfortable, and organized space where code can grow and evolve. 
+ * Just as birds create nests to nurture their young, JavaNest is designed to foster the 
+ * creation and nurturing of ideas in the form of code.
+ * 
+ * This Code Editor is built to provide a simple, effective, and customizable environment for editing
+ * and managing source code files, with basic functionality like opening, editing, saving files, 
+ * and future plans to include syntax highlighting, font size adjustment, and more.
+ * 
+ * Features of v0.1a:
+ * - Basic text editing capabilities.
+ * - Ability to open and save files with metadata embedded.
+ * - Adjustable font size (via View menu).
+ * - Minimal user interface to provide an uncluttered experience.
+ * 
+ * Future Enhancements:
+ * - Syntax highlighting for multiple programming languages.
+ * - Line numbering support.
+ * - Theme selection and custom color schemes.
+ * - Auto-complete and real-time syntax checking.
+ * 
+ * Disclaimer:
+ * This is an alpha version of the software, and it is still under development. Expect bugs, incomplete 
+ * features, and performance issues. Please report any bugs or suggestions to the author at the given email.
+ * 
+ */
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+
+public class JavaNest {
+    private JTextArea textArea;
+    private JFrame frame;
+    private Font currentFont;
+    private final int FONT_INCREMENT = 3;
+    private String lastOpenedFilePath;
+    private final String logoPath = "util/logo/logo.png";
+    private final int defaultFontSize = 25;
+
+    public JavaNest() {
+        frame = new JFrame("JavaNest CodeEditor -v0.1a");
+        frame.setSize(600, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        ImageIcon logo = new ImageIcon(logoPath);
+        frame.setIconImage(logo.getImage());
+
+        textArea = new JTextArea();
+        textArea.setFont(new Font("Arial", Font.PLAIN, 20));
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu fileMenu = new JMenu("File");
+        JMenuItem newItem = new JMenuItem("New");
+        JMenuItem openItem = new JMenuItem("Open");
+        JMenuItem saveItem = new JMenuItem("Save");
+        JMenuItem exitItem = new JMenuItem("Exit");
+
+        newItem.addActionListener(e -> {
+            textArea.setText("");
+            lastOpenedFilePath = null;
+        });
+
+        openItem.addActionListener(e -> openFile());
+        saveItem.addActionListener(e -> saveFileWithMetadata());
+        exitItem.addActionListener(e -> System.exit(0));
+
+        fileMenu.add(newItem);
+        fileMenu.add(openItem);
+        fileMenu.add(saveItem);
+        fileMenu.addSeparator();
+        fileMenu.add(exitItem);
+
+        JMenu viewMenu = new JMenu("View");
+        JMenuItem increaseFontItem = new JMenuItem("Increase Font Size");
+        JMenuItem decreaseFontItem = new JMenuItem("Decrease Font Size");
+
+        increaseFontItem.addActionListener(e -> increaseFontSize());
+        decreaseFontItem.addActionListener(e -> decreaseFontSize());
+
+        viewMenu.add(increaseFontItem);
+        viewMenu.add(decreaseFontItem);
+
+        menuBar.add(fileMenu);
+        menuBar.add(viewMenu);
+
+        frame.setJMenuBar(menuBar);
+
+        currentFont = new Font("Arial", Font.PLAIN, defaultFontSize);
+        textArea.setFont(currentFont);
+        frame.setVisible(true);
+    }
+
+    // Method to open a file
+    private void openFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            lastOpenedFilePath = file.getAbsolutePath();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                textArea.setText("");
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    textArea.append(line + "\n");
+                }
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(frame, "Error opening file: " + ex.getMessage());
+            }
+        }
+    }
+
+    // Method to save the current text and preserve metadata
+    private void saveFileWithMetadata() {
+        if (lastOpenedFilePath != null) {
+            Path path = Paths.get(lastOpenedFilePath);
+            try {
+                // Get the file's current metadata before saving
+                BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
+                FileTime lastModifiedTime = attributes.lastModifiedTime();
+                FileTime creationTime = attributes.creationTime();
+
+                // Save the file content
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(lastOpenedFilePath))) {
+                    writer.write(textArea.getText());
+                }
+
+                // Restore the metadata after saving
+                Files.setAttribute(path, "basic:lastModifiedTime", lastModifiedTime);
+                Files.setAttribute(path, "basic:creationTime", creationTime);
+
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(frame, "Error saving file: " + ex.getMessage());
+            }
+        } else {
+            JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                lastOpenedFilePath = file.getAbsolutePath();
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                    writer.write(textArea.getText());
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(frame, "Error saving file: " + ex.getMessage());
+                }
+            }
+        }
+    }
+
+    // Method to increase the font size
+    private void increaseFontSize() {
+        currentFont = currentFont.deriveFont((float) (currentFont.getSize() + FONT_INCREMENT));
+        textArea.setFont(currentFont);
+    }
+
+    // Method to decrease the font size
+    private void decreaseFontSize() {
+        currentFont = currentFont.deriveFont((float) (currentFont.getSize() - FONT_INCREMENT));
+        textArea.setFont(currentFont);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(JavaNest::new);
+    }
+}

@@ -3,3 +3,6 @@ bin/
 
 *.exe
 *.class
+*.jar
+
+manifest.txt
