@@ -3,7 +3,7 @@
  * @since v0.1a [alpha version]
  * @author Nikhil Karmakar <email=nikhilbroo@hotmail.com>
  * 
- * JavaNest CodeEditor - v0.1a
+ * JavaNest CodeEditor - v0.2a
  * 
  * JavaNest: The name represents a space where Java is at the core of development.
  * "Java" signifies the language used for building this project, while "Nest" symbolizes 
@@ -32,14 +32,16 @@
  * features, and performance issues. Please report any bugs or suggestions to the author at the given email.
  * 
  */
-
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import LineNumberComponent;
 
 public class JavaNest {
     private JTextArea textArea;
@@ -49,19 +51,51 @@ public class JavaNest {
     private String lastOpenedFilePath;
     private final String logoPath = "util/logo/logo.png";
     private final int defaultFontSize = 25;
+    private LineNumberComponent lineNumberComponent; // Line number component reference
 
     public JavaNest() {
-        frame = new JFrame("JavaNest CodeEditor -v0.1a");
+        frame = new JFrame("JavaNest CodeEditor - v0.2a");
         frame.setSize(600, 400);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        ImageIcon logo = new ImageIcon(logoPath);
-        frame.setIconImage(logo.getImage());
+        try {
+            ImageIcon logo = new ImageIcon(logoPath);
+            frame.setIconImage(logo.getImage());
+        } catch (Exception e) {
+            System.err.println("Error: " + e);
+        }
 
         textArea = new JTextArea();
-        textArea.setFont(new Font("Arial", Font.PLAIN, 20));
+        currentFont = new Font("Arial", Font.PLAIN, defaultFontSize);
+        textArea.setFont(currentFont);
+
+        // Create line number component
+        lineNumberComponent = new LineNumberComponent(textArea, currentFont);
+
+        // Create a JScrollPane for text area
         JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setRowHeaderView(lineNumberComponent); // Attach line number component to scroll pane
         frame.add(scrollPane, BorderLayout.CENTER);
+
+        // Add a DocumentListener to update line numbers on text changes
+        textArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                lineNumberComponent.updatePreferredSize(); // Update the width
+                lineNumberComponent.repaint();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                lineNumberComponent.updatePreferredSize(); // Update the width
+                lineNumberComponent.repaint();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                lineNumberComponent.updatePreferredSize(); // Update the width
+                lineNumberComponent.repaint();
+            }
+        });
 
         JMenuBar menuBar = new JMenuBar();
 
@@ -72,7 +106,7 @@ public class JavaNest {
         JMenuItem exitItem = new JMenuItem("Exit");
 
         newItem.addActionListener(e -> {
-            textArea.setText("");
+            textArea.setText("JavaNest CodeEditor - v0.2a");
             lastOpenedFilePath = null;
         });
 
@@ -100,9 +134,6 @@ public class JavaNest {
         menuBar.add(viewMenu);
 
         frame.setJMenuBar(menuBar);
-
-        currentFont = new Font("Arial", Font.PLAIN, defaultFontSize);
-        textArea.setFont(currentFont);
         frame.setVisible(true);
     }
 
@@ -164,12 +195,14 @@ public class JavaNest {
     private void increaseFontSize() {
         currentFont = currentFont.deriveFont((float) (currentFont.getSize() + FONT_INCREMENT));
         textArea.setFont(currentFont);
+        lineNumberComponent.setFont(currentFont); // Update line numbers font if needed
     }
 
     // Method to decrease the font size
     private void decreaseFontSize() {
         currentFont = currentFont.deriveFont((float) (currentFont.getSize() - FONT_INCREMENT));
         textArea.setFont(currentFont);
+        lineNumberComponent.setFont(currentFont); // Update line numbers font if needed
     }
 
     public static void main(String[] args) {
