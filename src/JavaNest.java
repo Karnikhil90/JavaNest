@@ -15,11 +15,16 @@
  * and managing source code files, with basic functionality like opening, editing, saving files, 
  * and future plans to include syntax highlighting, font size adjustment, and more.
  * 
- * Features of v0.1a:
+ * Features of v0.2a:
  * - Basic text editing capabilities.
  * - Ability to open and save files with metadata embedded.
  * - Adjustable font size (via View menu).
  * - Minimal user interface to provide an uncluttered experience.
+ * - Line numbering support for improved readability.
+ * - Customizable font selection for better user experience.
+ * - Future plans to include syntax highlighting for multiple programming languages.
+ * - Enhanced file management features.
+
  * 
  * Future Enhancements:
  * - Syntax highlighting for multiple programming languages.
