@@ -3,7 +3,7 @@
  * @since v0.1a [alpha version]
  * @author Nikhil Karmakar <email=nikhilbroo@hotmail.com>
  * 
- * JavaNest CodeEditor - v0.2a
+ * JavaNest CodeEditor - v0.3a
  * 
  * JavaNest: The name represents a space where Java is at the core of development.
  * "Java" signifies the language used for building this project, while "Nest" symbolizes 
@@ -24,7 +24,10 @@
  * - Customizable font selection for better user experience.
  * - Future plans to include syntax highlighting for multiple programming languages.
  * - Enhanced file management features.
-
+ *
+ * Features of v0.3a:
+ * - Added support for opening files directly via the 'Open with' context menu.
+ *
  * 
  * Future Enhancements:
  * - Syntax highlighting for multiple programming languages.
@@ -115,7 +118,7 @@ public class JavaNest {
             lastOpenedFilePath = null;
         });
 
-        openItem.addActionListener(e -> openFile());
+        openItem.addActionListener(e -> openFile(null));
         saveItem.addActionListener(e -> saveFileWithMetadata());
         exitItem.addActionListener(e -> System.exit(0));
 
@@ -143,11 +146,11 @@ public class JavaNest {
     }
 
     // Method to open a file
-    private void openFile() {
-        JFileChooser fileChooser = new JFileChooser();
-        if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            lastOpenedFilePath = file.getAbsolutePath();
+    // Overloaded openFile method to accept a file path
+    private void openFile(String filePath) {
+        lastOpenedFilePath = filePath;
+        File file = new File(filePath);
+        if (file.exists()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 textArea.setText("");
                 String line;
@@ -157,6 +160,8 @@ public class JavaNest {
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(frame, "Error opening file: " + ex.getMessage());
             }
+        } else {
+            JOptionPane.showMessageDialog(frame, "File not found: " + filePath);
         }
     }
 
@@ -211,8 +216,15 @@ public class JavaNest {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new JavaNest());
+        SwingUtilities.invokeLater(() -> {
+            JavaNest editor = new JavaNest();
+            if (args.length > 0) {
+                String filePath = args[0];
+                editor.openFile(filePath); // Open the file automatically if a file path is passed
+            }
+        });
     }
+
 }
 
 class LineNumberComponent extends JComponent {
